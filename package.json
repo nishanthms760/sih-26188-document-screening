@@ -1,0 +1,11 @@
+{
+  "name": "sih-26188-document-screening",
+  "version": "1.0.0",
+  "description": "Root package.json to forward commands to the frontend directory.",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "preview": "npm run preview --prefix frontend"
+  }
+}
