@@ -20,8 +20,8 @@ try:
     db_check.close()
     if user_count == 0:
         print("Database user table empty. Auto-seeding initial demo dataset...")
-        from app.database.seed import seed_db
-        seed_db()
+        from app.database.seed import ensure_demo_users
+        ensure_demo_users()
 except Exception as e:
     print(f"Database auto-seed notice: {e}")
 

@@ -6,7 +6,29 @@ from app.database.connection import SessionLocal, Base, engine
 from app.models.models import User, Screening, Document, OCRResult, ValidationResult, TamperingResult, FaceResult, RiskResult, AuditLog
 from app.core.security import get_password_hash
 
-def compute_hash(data_str: str) -> str:
+def ensure_demo_users():
+    """Create demo users if they don't exist. Idempotent and does not modify other data."""
+    demo_users = [
+        {"name": "Admin Officer", "email": "admin@ssb.gov.in", "password": "admin123", "role": "ADMIN"},
+        {"name": "Security Officer", "email": "officer@ssb.gov.in", "password": "officer123", "role": "OFFICER"},
+        {"name": "Intelligence Analyst", "email": "analyst@ssb.gov.in", "password": "analyst123", "role": "ANALYST"},
+    ]
+    db: Session = SessionLocal()
+    try:
+        for u in demo_users:
+            existing = db.query(User).filter(User.email == u["email"]).first()
+            if not existing:
+                user = User(
+                    name=u["name"],
+                    email=u["email"],
+                    password_hash=get_password_hash(u["password"]),
+                    role=u["role"]
+                )
+                db.add(user)
+        db.commit()
+    finally:
+        db.close()
+
     return hashlib.sha256(data_str.encode("utf-8")).hexdigest()
 
 def seed_db():
