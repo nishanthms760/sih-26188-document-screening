@@ -13,15 +13,12 @@ from app.api import auth, screenings, analytics, audit
 # Ensure database tables exist
 Base.metadata.create_all(bind=engine)
 
-# Safe auto-seeding if database is completely unpopulated
+# Ensure demo users exist (idempotent)
 try:
-    db_check = SessionLocal()
-    user_count = db_check.query(User).count()
-    db_check.close()
-    if user_count == 0:
-        print("Database user table empty. Auto-seeding initial demo dataset...")
-        from app.database.seed import ensure_demo_users
-        ensure_demo_users()
+    from app.database.seed import ensure_demo_users
+    ensure_demo_users()
+except Exception as e:
+    print(f"Demo user creation error: {e}")
 except Exception as e:
     print(f"Database auto-seed notice: {e}")
 
