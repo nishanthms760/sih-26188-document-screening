@@ -33,6 +33,13 @@ export interface ValidationResult {
   message: string | null;
 }
 
+export interface SuspiciousRegion {
+  region?: string;
+  anomaly: string;
+  severity: number;
+  bbox: [number, number, number, number];
+}
+
 export interface TamperingResult {
   id: number;
   photo_replacement_score: number;
@@ -40,6 +47,7 @@ export interface TamperingResult {
   stamp_score: number;
   metadata_score: number;
   overall_probability: number;
+  suspicious_regions?: SuspiciousRegion[];
 }
 
 export interface FaceResult {

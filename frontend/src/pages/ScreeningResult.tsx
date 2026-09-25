@@ -15,7 +15,7 @@ import {
   Activity
 } from 'lucide-react';
 import { screeningService, caseService } from '../services/api';
-import type { Screening } from '../types';
+import type { Screening, SuspiciousRegion } from '../types';
 
 const ScreeningResult: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -112,27 +112,37 @@ const ScreeningResult: React.FC = () => {
   const riskColor = isCritical ? 'text-rose-500 border-rose-500/25 bg-rose-500/10' : (isMedium ? 'text-amber-500 border-amber-500/25 bg-amber-500/10' : 'text-emerald-500 border-emerald-500/25 bg-emerald-500/10');
 
   // Compute dynamic suspicious regions from tampering_result if available
-  const suspiciousRegions = (screening.tampering_result?.suspicious_regions && screening.tampering_result.suspicious_regions.length > 0)
-    ? screening.tampering_result.suspicious_regions.map(r => {
-        const leftPct = Math.max(2, Math.min(80, Math.round((r.bbox[0] / 500) * 100)));
-        const topPct = Math.max(4, Math.min(80, Math.round((r.bbox[1] / 400) * 100)));
-        const widthPct = Math.max(15, Math.min(50, Math.round(((r.bbox[2] - r.bbox[0]) / 500) * 100)));
-        const heightPct = Math.max(10, Math.min(40, Math.round(((r.bbox[3] - r.bbox[1]) / 400) * 100)));
-        return {
-          x: `left-[${leftPct}%]`,
-          y: `top-[${topPct}%]`,
-          w: `w-[${widthPct}%]`,
-          h: `h-[${heightPct}%]`,
-          label: `${r.anomaly} (${Math.round(r.severity * 100)}% severity)`
-        };
-      })
-    : (screening.risk_level === 'CRITICAL' ? [
-        { x: 'left-[2%]', y: 'top-[8%]', w: 'w-[40%]', h: 'h-[50%]', label: 'Photo Replacement (Border Frame Anomaly)' },
-        { x: 'left-[46%]', y: 'top-[22%]', w: 'w-[50%]', h: 'h-[10%]', label: 'Text Manipulation (Name Character Alignment)' },
-        { x: 'left-[46%]', y: 'top-[42%]', w: 'w-[50%]', h: 'h-[10%]', label: 'Text Manipulation (Alteration on Expiry Date)' }
-      ] : (screening.risk_level === 'MEDIUM' ? [
-        { x: 'left-[70%]', y: 'top-[78%]', w: 'w-[25%]', h: 'h-[12%]', label: 'Warning: Discrepancy on stay limits seal stamp' }
-      ] : []));
+
+type OverlayBox = {
+  x: string;
+  y: string;
+  w: string;
+  h: string;
+  label: string;
+};
+
+const suspiciousRegions: OverlayBox[] = (screening.tampering_result?.suspicious_regions && screening.tampering_result.suspicious_regions.length > 0)
+  ? screening.tampering_result.suspicious_regions.map((r: SuspiciousRegion): OverlayBox => {
+      const leftPct = Math.max(2, Math.min(80, Math.round((r.bbox[0] / 500) * 100)));
+      const topPct = Math.max(4, Math.min(80, Math.round((r.bbox[1] / 400) * 100)));
+      const widthPct = Math.max(15, Math.min(50, Math.round(((r.bbox[2] - r.bbox[0]) / 500) * 100)));
+      const heightPct = Math.max(10, Math.min(40, Math.round(((r.bbox[3] - r.bbox[1]) / 400) * 100)));
+      return {
+        x: `left-[${leftPct}%]`,
+        y: `top-[${topPct}%]`,
+        w: `w-[${widthPct}%]`,
+        h: `h-[${heightPct}%]`,
+        label: `${r.anomaly} (${Math.round(r.severity * 100)}% severity)`,
+      };
+    })
+  : (screening.risk_level === 'CRITICAL' ? [
+      { x: 'left-[2%]', y: 'top-[8%]', w: 'w-[40%]', h: 'h-[50%]', label: 'Photo Replacement (Border Frame Anomaly)' },
+      { x: 'left-[46%]', y: 'top-[22%]', w: 'w-[50%]', h: 'h-[10%]', label: 'Text Manipulation (Name Character Alignment)' },
+      { x: 'left-[46%]', y: 'top-[42%]', w: 'w-[50%]', h: 'h-[10%]', label: 'Text Manipulation (Alteration on Expiry Date)' }
+    ] : (screening.risk_level === 'MEDIUM' ? [
+      { x: 'left-[70%]', y: 'top-[78%]', w: 'w-[25%]', h: 'h-[12%]', label: 'Warning: Discrepancy on stay limits seal stamp' }
+    ] : []));
+  // Duplicate suspiciousRegions block removed
 
   return (
     <div className="space-y-6">
