@@ -13,7 +13,7 @@ RealOCRService features:
 import os
 import re
 import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from PIL import Image, ImageEnhance, ImageOps
 
 try:
