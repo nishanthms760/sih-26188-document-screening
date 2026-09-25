@@ -34,11 +34,19 @@ app = FastAPI(
 )
 
 # CORS Setup
-origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+origins = [
+    origin.strip()
+    for origin in settings.CORS_ORIGINS.split(",")
+    if origin.strip()
+]
+
+origins.extend([
+    "https://sih-26188-document-screening-pi.vercel.app"
+])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_origins=list(set(origins)),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
