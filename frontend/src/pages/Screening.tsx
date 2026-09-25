@@ -66,138 +66,130 @@ const ScreeningPage: React.FC = () => {
   // =========================
 
   const startCamera = async () => {
-    try {
-      setError('');
+  try {
+    setError('');
 
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setError('Your browser does not support webcam access.');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError('Your browser does not support webcam access.');
+      return;
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'user',
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
+
+    setCameraStream(stream);
+    setCameraOn(true);
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+    }
+  } catch (err: any) {
+    console.error('Camera error:', err);
+
+    if (err?.name === 'NotAllowedError') {
+      setError(
+        'Camera permission was denied. Please allow camera access in your browser.'
+      );
+    } else if (err?.name === 'NotFoundError') {
+      setError('No camera was found on this device.');
+    } else if (err?.name === 'NotReadableError') {
+      setError('The camera is already being used by another application.');
+    } else {
+      setError('Unable to access the camera.');
+    }
+
+    setCameraOn(false);
+  }
+};
+
+const stopCamera = () => {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+  }
+
+  if (videoRef.current) {
+    videoRef.current.srcObject = null;
+  }
+
+  setCameraStream(null);
+  setCameraOn(false);
+};
+
+const captureLivePhoto = () => {
+  if (!videoRef.current || !canvasRef.current) {
+    setError('Camera is not ready.');
+    return;
+  }
+
+  const video = videoRef.current;
+  const canvas = canvasRef.current;
+
+  if (!video.videoWidth || !video.videoHeight) {
+    setError('Camera is still loading. Please wait.');
+    return;
+  }
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    setError('Unable to capture camera image.');
+    return;
+  }
+
+  context.save();
+  context.translate(canvas.width, 0);
+  context.scale(-1, 1);
+
+  context.drawImage(
+    video,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  context.restore();
+
+  canvas.toBlob(
+    (blob) => {
+      if (!blob) {
+        setError('Failed to capture live photo.');
         return;
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: false
-      });
-
-      setCameraStream(stream);
-      setCameraOn(true);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-    } catch (err: any) {
-      console.error('Camera error:', err);
-
-      if (err?.name === 'NotAllowedError') {
-        setError(
-          'Camera permission was denied. Please allow camera access in your browser.'
-        );
-      } else if (err?.name === 'NotFoundError') {
-        setError('No camera was found on this device.');
-      } else if (err?.name === 'NotReadableError') {
-        setError('The camera is already being used by another application.');
-      } else {
-        setError('Unable to access the camera.');
-      }
-
-      setCameraOn(false);
-    }
-  };
-
-  const stopCamera = () => {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
-    }
-
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-
-    setCameraStream(null);
-    setCameraOn(false);
-  };
-
-  const captureLivePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) {
-      setError('Camera is not ready.');
-      return;
-    }
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-
-    if (!video.videoWidth || !video.videoHeight) {
-      setError('Camera is still loading. Please wait.');
-      return;
-    }
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    const context = canvas.getContext('2d');
-
-    if (!context) {
-      setError('Unable to capture camera image.');
-      return;
-    }
-
-    // Mirror the captured selfie
-    context.save();
-    context.translate(canvas.width, 0);
-    context.scale(-1, 1);
-
-    context.drawImage(
-      video,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    context.restore();
-
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          setError('Failed to capture live photo.');
-          return;
+      const capturedFile = new globalThis.File(
+        [blob],
+        'traveler-live-face.jpg',
+        {
+          type: 'image/jpeg',
+          lastModified: Date.now()
         }
+      );
 
-        const capturedFile = new File(
-  [blob],
-  'traveler-live-face.jpg',
-  {
-    type: 'image/jpeg',
-    lastModified: Date.now()
-  }
-);
+      setLiveFile(capturedFile);
+      setError('');
+      stopCamera();
+    },
+    'image/jpeg',
+    0.92
+  );
+};
 
-setLiveFile(capturedFile);
-setError('');
-
-stopCamera();
-
-        setLiveFile(file);
-        setError('');
-
-        stopCamera();
-      },
-      'image/jpeg',
-      0.92
-    );
-  };
-
-  const retakePhoto = () => {
-    setLiveFile(null);
-    setError('');
-    startCamera();
-  };
-
+const retakePhoto = () => {
+  setLiveFile(null);
+  setError('');
+  startCamera();
+};
   // =========================
   // START ANALYSIS
   // =========================
