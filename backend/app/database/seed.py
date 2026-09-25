@@ -29,7 +29,7 @@ def ensure_demo_users():
     finally:
         db.close()
 
-    return hashlib.sha256(data_str.encode("utf-8")).hexdigest()
+    # ensure_demo_users completed without return
 
 def seed_db():
     # 1. Create tables

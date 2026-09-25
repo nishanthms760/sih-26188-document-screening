@@ -19,8 +19,6 @@ try:
     ensure_demo_users()
 except Exception as e:
     print(f"Demo user creation error: {e}")
-except Exception as e:
-    print(f"Database auto-seed notice: {e}")
 
 app = FastAPI(
     title="AI-Based Fake Identity & Document Screening System",
