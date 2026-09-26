@@ -14,7 +14,7 @@ import {
   Eye,
   Activity
 } from 'lucide-react';
-import { screeningService, caseService } from '../services/api';
+import { screeningService, caseService, API_URL } from '../services/api';
 import type { Screening, SuspiciousRegion } from '../types';
 
 const ScreeningResult: React.FC = () => {
@@ -95,11 +95,11 @@ const ScreeningResult: React.FC = () => {
     if (!filePath) return undefined;
     const parts = filePath.split(/[\\/]/);
     const filename = parts[parts.length - 1];
-    return `http://localhost:8000/api/static/uploads/${filename}`;
+    return `${API_URL}/api/static/uploads/${filename}`;
   };
 
   const docUrl = screening.document ? getImageUrl(screening.document.file_path) : undefined;
-  const liveUrl = `http://localhost:8000/api/static/uploads/scr_${screening.id}_live.jpg`;
+  const liveUrl = `${API_URL}/api/static/uploads/scr_${screening.id}_live.jpg`;
 
   const latestAudit = screening.audit_logs && screening.audit_logs.length > 0
     ? screening.audit_logs[screening.audit_logs.length - 1]

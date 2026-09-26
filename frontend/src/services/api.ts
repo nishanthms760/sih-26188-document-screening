@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://sih-26188-backend-ewln.onrender.com';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://sih-26188-backend-ewln.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,

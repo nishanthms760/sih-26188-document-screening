@@ -43,7 +43,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       if (err.response && err.response.data && err.response.data.detail) {
         setError(err.response.data.detail);
       } else if (err.code === 'ERR_NETWORK' || !err.response) {
-        setError('Unable to connect to the screening server. Please verify that FastAPI is running on port 8000.');
+        setError('Unable to reach the screening server. If it has been idle, it may be waking up — please wait 20-30 seconds and try again.');
       } else {
         setError(err.message || 'An error occurred during authentication.');
       }
