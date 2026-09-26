@@ -18,6 +18,7 @@ def ensure_demo_users():
         for u in demo_users:
             existing = db.query(User).filter(User.email == u["email"]).first()
             if not existing:
+                # Create missing demo user
                 user = User(
                     name=u["name"],
                     email=u["email"],
@@ -25,6 +26,11 @@ def ensure_demo_users():
                     role=u["role"]
                 )
                 db.add(user)
+            else:
+                # User exists – ensure password is up-to-date (idempotent)
+                new_hash = get_password_hash(u["password"])
+                if existing.password_hash != new_hash:
+                    existing.password_hash = new_hash
         db.commit()
     finally:
         db.close()
