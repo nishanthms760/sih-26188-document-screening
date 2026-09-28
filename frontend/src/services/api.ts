@@ -4,7 +4,29 @@ export const API_URL = import.meta.env.VITE_API_URL || 'https://sih-26188-backen
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 60000, // 60 seconds to allow Render wake‑up
 });
+
+// Retry on network errors (e.g., backend sleeping)
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const config = error.config;
+    // If request was made but no response received (network error)
+    if (error.code === 'ECONNABORTED' || !error.response) {
+      config.__retryCount = config.__retryCount || 0;
+      if (config.__retryCount < 3) {
+        config.__retryCount += 1;
+        // wait a bit before retrying
+        await new Promise((res) => setTimeout(res, 5000 * config.__retryCount));
+        return api(config);
+      }
+    }
+    // Existing 401 handling remains unchanged – will be applied later
+    return Promise.reject(error);
+  }
+);
+
 
 // Automatically inject JWT tokens into request headers
 api.interceptors.request.use(
