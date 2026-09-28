@@ -1,3 +1,4 @@
+// Force bundle version bump – updated 2026-09-28
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, KeyRound, User, AlertCircle } from 'lucide-react';
@@ -40,12 +41,20 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
       navigate('/dashboard');
     } catch (err: any) {
-      if (err.response && err.response.data && err.response.data.detail) {
-        setError(err.response.data.detail);
-      } else if (err.code === 'ERR_NETWORK' || !err.response) {
-        setError('Unable to reach the screening server. If it has been idle, it may be waking up — please wait 20-30 seconds and try again.');
+      if (err.response) {
+        const status = err.response.status;
+        if (status === 401) {
+          setError('Incorrect username/email or password');
+        } else if (status === 400) {
+          const detail = err.response.data?.detail || 'Bad request';
+          setError(detail);
+        } else if (status >= 500) {
+          setError('Server error. Please try again later.');
+        } else {
+          setError('An error occurred during authentication.');
+        }
       } else {
-        setError(err.message || 'An error occurred during authentication.');
+        setError('Unable to reach the screening server. Please try again.');
       }
     } finally {
       setLoading(false);
